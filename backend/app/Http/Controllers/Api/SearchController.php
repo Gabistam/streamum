@@ -4,11 +4,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Search;
+use App\Services\TmdbService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class SearchController extends Controller
 {
+    protected $tmdbService;
+
+    public function __construct(TmdbService $tmdbService)
+    {
+        $this->tmdbService = $tmdbService;
+    }
+
     public function index()
     {
         $searches = Search::orderBy('count', 'desc')->get();
@@ -34,7 +42,12 @@ class SearchController extends Controller
             $search->increment('count');
         }
 
-        return response()->json($search, 201);
+        $searchResults = $this->tmdbService->searchMovies($request->query);
+
+        return response()->json([
+            'search' => $search,
+            'results' => $searchResults
+        ], 201);
     }
 
     public function show($id)
