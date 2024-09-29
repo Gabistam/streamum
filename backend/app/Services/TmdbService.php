@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
 
 class TmdbService
 {
@@ -34,20 +35,31 @@ class TmdbService
     protected function get($endpoint, $params = [])
     {
         $url = $this->baseUrl . $endpoint;
-
         $cacheKey = 'tmdb_' . md5($url . serialize($params));
 
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($url, $params) {
-            $response = Http::withToken($this->apiKey)
-                ->get($url, $params);
+            $executed = RateLimiter::attempt(
+                'tmdb-api',
+                40, // Maximum attempts
+                function() use ($url, $params) {
+                    $response = Http::withToken($this->apiKey)->get($url, $params);
 
-            if ($response->successful()) {
-                return $response->json();
+                    if ($response->successful()) {
+                        return $response->json();
+                    }
+
+                    Log::error("TMDB API request failed: " . $response->body());
+                    return null;
+                },
+                60 // Time window in seconds
+            );
+
+            if (!$executed) {
+                Log::warning("TMDB API rate limit exceeded. Request delayed.");
+                return null;
             }
 
-            // Log the error or handle it as needed
-            Log::error("TMDB API request failed: " . $response->body());
-            return null;
+            return $executed;
         });
     }
 }

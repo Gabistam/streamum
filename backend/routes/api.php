@@ -11,14 +11,16 @@ use App\Http\Controllers\Api\SearchController;
 Route::post('/register', [ApiAuthController::class, 'register']);
 Route::post('/login', [ApiAuthController::class, 'login']);
 
-// Public movie routes
-Route::get('/movies', [MovieController::class, 'index']);
-Route::get('/movies/{id}', [MovieController::class, 'show']);
-Route::get('/trending-movies', [TrendingMovieController::class, 'index']);
-Route::post('/search', [SearchController::class, 'store']);
+// Public movie routes with rate limiting
+Route::middleware('tmdb.limit')->group(function () {
+    Route::get('/movies', [MovieController::class, 'index']);
+    Route::get('/movies/{id}', [MovieController::class, 'show']);
+    Route::get('/trending-movies', [TrendingMovieController::class, 'index']);
+    Route::post('/search', [SearchController::class, 'store']);
+});
 
 // Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'tmdb.limit'])->group(function () {
     // Auth
     Route::post('/logout', [ApiAuthController::class, 'logout']);
     Route::get('/user', [ApiAuthController::class, 'user']);

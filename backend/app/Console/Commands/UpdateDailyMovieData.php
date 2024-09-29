@@ -7,6 +7,7 @@ use App\Services\TmdbService;
 use App\Models\Movie;
 use App\Models\TrendingMovie;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\RateLimiter;
 
 class UpdateDailyMovieData extends Command
 {
@@ -25,6 +26,10 @@ class UpdateDailyMovieData extends Command
     {
         $this->info('Starting daily movie data update...');
 
+        RateLimiter::for('tmdb-api-daily', function () {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(40);
+        });
+
         $this->updateTrendingMovies();
         $this->updateExistingMovies();
 
@@ -35,27 +40,39 @@ class UpdateDailyMovieData extends Command
     {
         $this->info('Updating trending movies...');
 
-        $trendingMovies = $this->tmdbService->getTrending('day');
+        $executed = RateLimiter::attempt(
+            'tmdb-api-daily',
+            40,
+            function () {
+                $trendingMovies = $this->tmdbService->getTrending('day');
 
-        foreach ($trendingMovies['results'] as $movieData) {
-            $movie = Movie::updateOrCreate(
-                ['tmdb_id' => $movieData['id']],
-                [
-                    'title' => $movieData['title'],
-                    'overview' => $movieData['overview'],
-                    'poster_path' => $movieData['poster_path'],
-                    'release_date' => $movieData['release_date'],
-                    // Add other fields as necessary
-                ]
-            );
+                if ($trendingMovies) {
+                    foreach ($trendingMovies['results'] as $movieData) {
+                        $movie = Movie::updateOrCreate(
+                            ['tmdb_id' => $movieData['id']],
+                            [
+                                'title' => $movieData['title'],
+                                'overview' => $movieData['overview'],
+                                'poster_path' => $movieData['poster_path'],
+                                'release_date' => $movieData['release_date'],
+                                // Add other fields as necessary
+                            ]
+                        );
 
-            TrendingMovie::updateOrCreate(
-                [
-                    'movie_id' => $movie->id,
-                    'trend_date' => Carbon::today(),
-                    'trend_type' => 'day'
-                ]
-            );
+                        TrendingMovie::updateOrCreate(
+                            [
+                                'movie_id' => $movie->id,
+                                'trend_date' => Carbon::today(),
+                                'trend_type' => 'day'
+                            ]
+                        );
+                    }
+                }
+            }
+        );
+
+        if (!$executed) {
+            $this->error('Rate limit exceeded while updating trending movies.');
         }
     }
 
@@ -63,22 +80,32 @@ class UpdateDailyMovieData extends Command
     {
         $this->info('Updating existing movies...');
 
-        // Get movies that haven't been updated in the last 24 hours
         $moviesToUpdate = Movie::where('updated_at', '<', Carbon::now()->subDay())->get();
 
         foreach ($moviesToUpdate as $movie) {
-            $movieData = $this->tmdbService->getMovieDetails($movie->tmdb_id);
+            $executed = RateLimiter::attempt(
+                'tmdb-api-daily',
+                40,
+                function () use ($movie) {
+                    $movieData = $this->tmdbService->getMovieDetails($movie->tmdb_id);
 
-            if ($movieData) {
-                $movie->update([
-                    'title' => $movieData['title'],
-                    'overview' => $movieData['overview'],
-                    'poster_path' => $movieData['poster_path'],
-                    'release_date' => $movieData['release_date'],
-                    'vote_average' => $movieData['vote_average'],
-                    'vote_count' => $movieData['vote_count'],
-                    // Update other fields as necessary
-                ]);
+                    if ($movieData) {
+                        $movie->update([
+                            'title' => $movieData['title'],
+                            'overview' => $movieData['overview'],
+                            'poster_path' => $movieData['poster_path'],
+                            'release_date' => $movieData['release_date'],
+                            'vote_average' => $movieData['vote_average'],
+                            'vote_count' => $movieData['vote_count'],
+                            // Update other fields as necessary
+                        ]);
+                    }
+                }
+            );
+
+            if (!$executed) {
+                $this->error('Rate limit exceeded while updating movie ID: ' . $movie->id);
+                break; // Stop updating if we hit the rate limit
             }
         }
     }
