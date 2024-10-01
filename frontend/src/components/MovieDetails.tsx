@@ -4,10 +4,10 @@ import { getMovie } from '../services/movieService';
 import { Movie } from '../types/api';
 
 const MovieDetails: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
     const fetchMovie = async () => {
@@ -20,10 +20,10 @@ const MovieDetails: React.FC = () => {
       try {
         setLoading(true);
         const response = await getMovie(parseInt(id, 10));
-        setMovie(response);  // Supposons que getMovie retourne directement le film
-        setLoading(false);
+        setMovie(response);
       } catch (err) {
         setError('Une erreur est survenue lors du chargement des détails du film.');
+      } finally {
         setLoading(false);
       }
     };

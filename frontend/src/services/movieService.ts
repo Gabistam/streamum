@@ -15,3 +15,8 @@ export const searchMovies = async (query: string, page: number = 1): Promise<Pag
   const response = await api.get<PaginatedResponse<Movie>>('/movies/search', { params: { query, page } });
   return response.data;
 };
+
+export const getPopularMovies = async (): Promise<Movie[]> => {
+    const response = await api.get('/movies/popular');
+    return response.data;
+};

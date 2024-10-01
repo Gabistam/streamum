@@ -1,23 +1,24 @@
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 const api: AxiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:80:80/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true, // Important pour les cookies CSRF avec Laravel Sanctum
+  withCredentials: true,
 });
 
-// Intercepteur pour les réponses
-api.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  async (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Gérer la déconnexion ou le rafraîchissement du token ici
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token'); 
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
-    return Promise.reject(error);
-  }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
+
 
 export default api;

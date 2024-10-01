@@ -1,24 +1,21 @@
 // src/components/LoginForm.tsx
-
 import React, { useState } from 'react';
-import { login } from '../services/authService';
-import { useAuth } from '../hooks/useAuth'; // Assurez-vous que ce hook existe
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-//   const { setUser } = useAuth(); // Supposons que votre hook useAuth fournit cette fonction
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      const response = await login(email, password);
-    //   setUser(response.data.user); // Mettez à jour l'état de l'utilisateur
-      navigate('/'); // Redirigez vers la page d'accueil après la connexion
+      await login(email, password);
+      navigate('/');
     } catch (error) {
       setError('Échec de la connexion. Veuillez vérifier vos identifiants.');
       console.error('Login failed', error);

@@ -25,8 +25,16 @@ class ApiAuthController extends Controller
             ]);
         }
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
-            'token' => $user->createToken('auth_token')->plainTextToken
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'is_admin' => $user->is_admin, // Assurez-vous d'avoir cette colonne dans votre table users
+            ]
         ]);
     }
 
