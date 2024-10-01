@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import SearchBar from './SearchBar';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -26,6 +27,7 @@ const Header: React.FC = () => {
               <>
                 <li><Link to="/profile" className="hover:text-gray-300">Profile</Link></li>
                 <li><button onClick={handleLogout} className="hover:text-gray-300">Logout</button></li>
+                <li className="w-1/2"><SearchBar/></li>
               </>
             ) : (
               <li><Link to="/login" className="hover:text-gray-300">Login</Link></li>

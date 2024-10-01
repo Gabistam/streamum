@@ -19,3 +19,14 @@ export interface User {
     per_page: number;
     total: number;
   }
+
+  // src/types/api.ts
+
+    export interface Movie {
+        id: number;
+        title: string;
+        overview: string;
+        poster_path: string;
+        release_date: string;
+        vote_average: number;
+    }
