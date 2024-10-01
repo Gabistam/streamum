@@ -1,0 +1,18 @@
+* [33me877a61[m[33m ([m[1;32mfront[m[33m)[m Add environment variables and user type definition
+* [33mea800d7[m Implémenter SearchBar
+* [33m58a8efa[m Add Movies and Profile pages + common components
+* [33m70ad9b8[m add Layout, Header, Footer
+* [33m6f08fcc[m Config Axios => appel API
+* [33md712c57[m Configuration de départ
+* [33m1a76d71[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mbackend1[m[33m, [m[1;31morigin/backend1[m[33m)[m add api + admin
+* [33ma8e13fe[m add jetstream
+[31m|[m * [33maa052c9[m[33m ([m[1;32mmain[m[33m)[m add Breeze
+[31m|[m * [33m68e0c0d[m[33m ([m[1;31morigin/main[m[33m)[m Update daily movie data command with TMDB API rate limiting
+[31m|[m * [33m6e2c095[m mise en place système de mise à jour quotidienne des données
+[31m|[m * [33m152a8da[m commande Artisan recup data => API TMDB + implémentation API TMDB
+[31m|[m * [33m247e565[m controllers API / CRUD
+[31m|[m * [33m7d61e64[m creation sanctum
+[31m|[m[31m/[m  
+* [33m3c3e326[m[33m ([m[1;32mbackend[m[33m)[m create migrations & models
+* [33m4635f97[m Create Laraval Sail + env
+* [33m5aecc1b[m first commit
