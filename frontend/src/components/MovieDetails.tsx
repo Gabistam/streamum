@@ -1,22 +1,26 @@
-// src/components/MovieDetails.tsx
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getMovie } from '../services/movieService';
 import { Movie } from '../types/api';
 
 const MovieDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
     const fetchMovie = async () => {
+      if (!id) {
+        setError('ID du film non spécifié');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const response = await getMovie(parseInt(id, 10));
-        setMovie(response.data);
+        setMovie(response);  // Supposons que getMovie retourne directement le film
         setLoading(false);
       } catch (err) {
         setError('Une erreur est survenue lors du chargement des détails du film.');
